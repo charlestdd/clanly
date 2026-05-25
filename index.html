@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html>
-
 <head>
+<meta charset="UTF-8">
 <title>Clanly Login</title>
 
 <style>
-
 *{
 margin:0;
 padding:0;
@@ -14,94 +13,49 @@ font-family:Arial,sans-serif;
 }
 
 body{
-
 height:100vh;
-
 display:flex;
 justify-content:center;
 align-items:center;
-
 background:#313338;
 color:white;
-
 }
 
-.container{
-
+.card{
 width:400px;
-
 background:#1e1f22;
-
 padding:35px;
-
 border-radius:18px;
-
-box-shadow:0px 8px 25px rgba(0,0,0,0.4);
-
 text-align:center;
-
 }
 
 .logo{
-
-font-size:35px;
+font-size:34px;
 font-weight:bold;
 margin-bottom:10px;
-
 }
 
 .subtitle{
-
-color:#b5bac1;
 margin-bottom:30px;
-font-size:14px;
-
+color:#b5bac1;
 }
 
 button{
-
 width:100%;
 padding:14px;
-
 border:none;
 border-radius:8px;
-
 background:#5865F2;
-
 color:white;
-
 font-size:16px;
-font-weight:bold;
-
 cursor:pointer;
-
-transition:.2s;
-
 }
-
-button:hover{
-
-transform:translateY(-2px);
-
-opacity:.95;
-
-}
-
-.small{
-
-margin-top:18px;
-font-size:12px;
-color:#949ba4;
-
-}
-
 </style>
 
 </head>
-
 <body>
 
-<div class="container">
+<div class="card">
 
 <div class="logo">
 Clanly
@@ -115,12 +69,7 @@ Communities, conversations, and chaos.
 Continue with Google
 </button>
 
-<div class="small">
-Sign in to continue
 </div>
-
-</div>
-
 
 <script type="module">
 
@@ -142,25 +91,23 @@ from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
 
-apiKey:"AIzaSyBuapWoAiZKhkNOfUos9ZuvzisS39YGs1o",
-authDomain:"skibidilogin-bbf42.firebaseapp.com",
-projectId:"skibidilogin-bbf42",
-storageBucket:"skibidilogin-bbf42.firebasestorage.app",
-messagingSenderId:"1008118855931",
-appId:"1:1008118855931:web:fb7784385be188150d585e",
-measurementId:"G-JJX8RGZ210"
+apiKey:"AIzaSyCf0ZGAMxo4t9NyezQVY5ghaViQK-pDsKQ",
+authDomain:"clanly-ac9de.firebaseapp.com",
+projectId:"clanly-ac9de",
+storageBucket:"clanly-ac9de.firebasestorage.app",
+messagingSenderId:"604527744111",
+appId:"1:604527744111:web:f87ed6c3bd205e5ff7a99a"
 
 };
 
-const app=initializeApp(firebaseConfig);
+initializeApp(firebaseConfig);
 
 const auth=getAuth();
 const db=getFirestore();
 
 const provider=new GoogleAuthProvider();
 
-document.getElementById("loginBtn")
-.onclick=async()=>{
+document.getElementById("loginBtn").onclick=async()=>{
 
 const result=
 await signInWithPopup(
@@ -180,20 +127,13 @@ user.uid
 );
 
 if(
-snap.exists()
-&&
+snap.exists() &&
 snap.data().username
 ){
-
-window.location=
-"skibidi.html";
-
+window.location="clanly.html";
 }
 else{
-
-window.location=
-"username.html";
-
+window.location="username.html";
 }
 
 };
