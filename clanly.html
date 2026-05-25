@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Clanly</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+height:100vh;
+display:flex;
+overflow:hidden;
+background:#313338;
+color:white;
+}
+
+/* Left server bar */
+
+.serverBar{
+
+width:72px;
+background:#1e1f22;
+
+display:flex;
+flex-direction:column;
+align-items:center;
+
+padding-top:12px;
+gap:10px;
+
+}
+
+.server{
+
+width:48px;
+height:48px;
+
+border-radius:50%;
+
+background:#5865F2;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+font-weight:bold;
+
+cursor:pointer;
+
+transition:.2s;
+}
+
+.server:hover{
+
+border-radius:16px;
+
+}
+
+/* Channel list */
+
+.channelBar{
+
+width:240px;
+background:#2b2d31;
+
+display:flex;
+flex-direction:column;
+
+}
+
+.serverTitle{
+
+padding:18px;
+font-size:18px;
+font-weight:bold;
+
+border-bottom:1px solid #1e1f22;
+
+}
+
+.channel{
+
+padding:12px 16px;
+
+color:#b5bac1;
+
+cursor:pointer;
+}
+
+.channel:hover{
+
+background:#3a3c43;
+
+border-radius:8px;
+margin:0 8px;
+}
+
+/* Main content */
+
+.main{
+
+flex:1;
+
+display:flex;
+flex-direction:column;
+
+background:#313338;
+
+}
+
+.topBar{
+
+height:60px;
+
+display:flex;
+align-items:center;
+
+padding-left:20px;
+
+border-bottom:1px solid #1e1f22;
+
+font-size:18px;
+font-weight:bold;
+
+}
+
+.chatArea{
+
+flex:1;
+
+padding:20px;
+overflow-y:auto;
+
+}
+
+.welcome{
+
+font-size:40px;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+.small{
+
+color:#b5bac1;
+}
+
+/* Bottom profile */
+
+.profile{
+
+height:60px;
+
+background:#232428;
+
+display:flex;
+align-items:center;
+
+padding:10px;
+
+margin-top:auto;
+
+}
+
+.avatar{
+
+width:38px;
+height:38px;
+
+border-radius:50%;
+
+margin-right:10px;
+
+}
+
+.userInfo{
+
+display:flex;
+flex-direction:column;
+}
+
+.username{
+
+font-size:14px;
+font-weight:bold;
+}
+
+.email{
+
+font-size:12px;
+color:#949ba4;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="serverBar">
+
+<div class="server">C</div>
+<div class="server">+</div>
+
+</div>
+
+<div class="channelBar">
+
+<div class="serverTitle">
+Clanly
+</div>
+
+<div class="channel">
+# general
+</div>
+
+<div class="channel">
+# memes
+</div>
+
+<div class="channel">
+# gaming
+</div>
+
+<div class="profile">
+
+<img
+id="avatar"
+class="avatar"
+>
+
+<div class="userInfo">
+
+<div
+id="username"
+class="username"
+>
+Loading...
+</div>
+
+<div
+id="email"
+class="email"
+>
+Loading...
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="main">
+
+<div class="topBar">
+# general
+</div>
+
+<div class="chatArea">
+
+<div class="welcome">
+Welcome to Clanly
+</div>
+
+<div class="small">
+Communities, conversations, and chaos.
+</div>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+
+import {
+getAuth,
+onAuthStateChanged
+}
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+import {
+getFirestore,
+doc,
+getDoc
+}
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+const firebaseConfig={
+
+apiKey:"AIzaSyBuapWoAiZKhkNOfUos9ZuvzisS39YGs1o",
+authDomain:"skibidilogin-bbf42.firebaseapp.com",
+projectId:"skibidilogin-bbf42",
+storageBucket:"skibidilogin-bbf42.firebasestorage.app",
+messagingSenderId:"1008118855931",
+appId:"1:1008118855931:web:fb7784385be188150d585e"
+
+};
+
+const app=initializeApp(firebaseConfig);
+
+const auth=getAuth();
+
+const db=getFirestore();
+
+onAuthStateChanged(
+auth,
+async(user)=>{
+
+if(!user){
+
+window.location=
+"index.html";
+
+return;
+
+}
+
+const snap=
+await getDoc(
+doc(
+db,
+"users",
+user.uid
+)
+);
+
+const data=
+snap.data();
+
+document.getElementById(
+"avatar"
+).src=
+data.photoURL;
+
+document.getElementById(
+"username"
+).innerText=
+data.username;
+
+document.getElementById(
+"email"
+).innerText=
+data.email;
+
+}
+);
+
+</script>
+
+</body>
+
+</html>
