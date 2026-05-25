@@ -1,180 +1,82 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-<title>Clanly - Create Username</title>
+<meta charset="UTF-8">
+<title>Create Username</title>
 
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
-
 body{
-
+background:#313338;
 height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
-
-background:#313338;
+font-family:Arial;
 color:white;
-
+margin:0;
 }
 
-.container{
-
+.card{
 width:420px;
-
 background:#1e1f22;
-
-padding:35px;
-
+padding:30px;
 border-radius:18px;
-
-box-shadow:0px 8px 25px rgba(0,0,0,.4);
-
 text-align:center;
-
 }
 
-.avatar{
-
-width:90px;
-height:90px;
-
+img{
+width:80px;
+height:80px;
 border-radius:50%;
-
-margin-bottom:15px;
-
-}
-
-.title{
-
-font-size:26px;
-font-weight:bold;
-
 margin-bottom:10px;
-
 }
 
-.email{
-
-font-size:14px;
-color:#949ba4;
-
-margin-bottom:25px;
-
-}
-
-.input{
-
+input{
 width:100%;
-
-padding:14px;
-
-border:none;
-outline:none;
-
-border-radius:8px;
-
+padding:12px;
 background:#2b2d31;
-
+border:none;
+border-radius:8px;
 color:white;
-
-font-size:15px;
-
-}
-
-.error{
-
-height:20px;
-
-margin-top:8px;
-
-font-size:13px;
-color:#ed4245;
-
+margin-top:15px;
 }
 
 button{
-
-margin-top:15px;
-
 width:100%;
-padding:14px;
-
+padding:12px;
+margin-top:15px;
+background:#5865F2;
 border:none;
 border-radius:8px;
-
-background:#5865F2;
-
 color:white;
-
-font-size:16px;
-font-weight:bold;
-
-cursor:pointer;
-
-opacity:.5;
-
 }
 
-button:disabled{
-
-cursor:not-allowed;
-
+#error{
+margin-top:8px;
+color:#ed4245;
+font-size:14px;
 }
-
-button.enabled{
-
-opacity:1;
-
-}
-
 </style>
 
 </head>
-
 <body>
 
-<div class="container">
+<div class="card">
 
-<img
-id="avatar"
-class="avatar"
->
+<img id="avatar">
 
-<div class="title">
-Choose your username
-</div>
+<h2>Create Username</h2>
 
-<div
-id="emailBox"
-class="email"
->
-Loading...
-</div>
+<div id="email"></div>
 
 <input
-id="username"
-class="input"
+id="usernameInput"
 placeholder="Username"
-maxlength="20"
 >
 
-<div
-id="errorText"
-class="error"
-></div>
+<div id="error"></div>
 
-<button
-id="saveBtn"
-disabled
->
+<button id="continueBtn">
 Continue
 </button>
 
@@ -191,7 +93,6 @@ onAuthStateChanged
 from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 import {
-
 getFirestore,
 doc,
 setDoc,
@@ -199,145 +100,69 @@ query,
 collection,
 where,
 getDocs
-
 }
-
 from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const firebaseConfig={
-
-apiKey:"AIzaSyBuapWoAiZKhkNOfUos9ZuvzisS39YGs1o",
-authDomain:"skibidilogin-bbf42.firebaseapp.com",
-projectId:"skibidilogin-bbf42",
-storageBucket:"skibidilogin-bbf42.firebasestorage.app",
-messagingSenderId:"1008118855931",
-appId:"1:1008118855931:web:fb7784385be188150d585e",
-measurementId:"G-JJX8RGZ210"
-
+apiKey:"AIzaSyCf0ZGAMxo4t9NyezQVY5ghaViQK-pDsKQ",
+authDomain:"clanly-ac9de.firebaseapp.com",
+projectId:"clanly-ac9de",
+storageBucket:"clanly-ac9de.firebasestorage.app",
+messagingSenderId:"604527744111",
+appId:"1:604527744111:web:f87ed6c3bd205e5ff7a99a"
 };
 
-const app=initializeApp(firebaseConfig);
+initializeApp(firebaseConfig);
 
 const auth=getAuth();
 const db=getFirestore();
 
 let currentUser;
 
-const input =
-document.getElementById("username");
-
-const error =
-document.getElementById("errorText");
-
-const button =
-document.getElementById("saveBtn");
-
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
-
-window.location=
-"index.html";
-
+window.location="index.html";
 return;
-
 }
 
 currentUser=user;
 
-document.getElementById(
-"emailBox"
-).innerText=user.email;
-
-document.getElementById(
-"avatar"
-).src=user.photoURL;
+avatar.src=user.photoURL;
+email.innerText=user.email;
 
 });
 
-input.addEventListener(
-"input",
-async()=>{
+continueBtn.onclick=async()=>{
 
-let username=
-input.value.trim();
-
-button.disabled=true;
-button.classList.remove(
-"enabled"
-);
-
-error.innerText="";
-
-if(username.length<3){
-
-error.innerText=
-"Minimum 3 characters";
-
-return;
-
-}
+const username=
+usernameInput.value.trim();
 
 const q=query(
-
 collection(db,"users"),
-
-where(
-"username",
-"==",
-username
-)
-
+where("username","==",username)
 );
 
 const result=
 await getDocs(q);
 
 if(!result.empty){
-
 error.innerText=
 "This username is taken";
-
 return;
-
 }
-
-button.disabled=false;
-
-button.classList.add(
-"enabled"
-);
-
-});
-
-button.onclick=
-async()=>{
 
 await setDoc(
-
-doc(
-db,
-"users",
-currentUser.uid
-),
-
+doc(db,"users",currentUser.uid),
 {
-
-email:
-currentUser.email,
-
-username:
-input.value.trim(),
-
-photoURL:
-currentUser.photoURL
-
+email:currentUser.email,
+username:username,
+photoURL:currentUser.photoURL
 }
-
 );
 
 window.location=
-"skibidi.html";
+"clanly.html";
 
 };
 
