@@ -129,9 +129,10 @@ query,
 where,
 getDocs,
 addDoc,
-collectionGroup
+arrayUnion
 }
 from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
 const firebaseConfig={
 
 apiKey:"AIzaSyCf0ZGAMxo4t9NyezQVY5ghaViQK-pDsKQ",
@@ -165,12 +166,11 @@ doc(db,"users",user.uid);
 const userSnap=
 await getDoc(userRef);
 
-const userData=
-userSnap.data();
+const data=userSnap.data();
 
-avatar.src=userData.photoURL;
-username.innerText=userData.username;
-email.innerText=userData.email;
+avatar.src=data.photoURL;
+username.innerText=data.username;
+email.innerText=data.email;
 
 loadServers();
 
@@ -180,38 +180,46 @@ async function loadServers(){
 
 serverList.innerHTML="";
 
-const q=query(
-collectionGroup(db,"members"),
-where("uid","==",currentUser.uid)
+const userSnap=
+await getDoc(
+doc(
+db,
+"users",
+currentUser.uid
+)
 );
 
-const results=
-await getDocs(q);
+const data=
+userSnap.data();
 
-for(const member of results.docs){
+const joined=
+data.joinedServers||[];
 
-const serverId=
-member.ref.parent.parent.id;
+for(const id of joined){
 
 const serverSnap=
 await getDoc(
 doc(
 db,
 "servers",
-serverId
+id
 )
 );
 
-const data=
+if(serverSnap.exists()){
+
+const server=
 serverSnap.data();
 
 serverList.innerHTML+=`
 
 <div class="server">
-${data.name}
+${server.name}
 </div>
 
 `;
+
+}
 
 }
 
@@ -243,14 +251,14 @@ userData.serversCreated||0;
 if(count>=2){
 
 alert(
-"You can only create 2 servers"
+"Maximum 2 servers"
 );
 
 return;
 
 }
 
-const code=
+const inviteCode=
 Math.random()
 .toString(36)
 .substring(2,8)
@@ -258,41 +266,34 @@ Math.random()
 
 const server=
 await addDoc(
-collection(
-db,
-"servers"
-),
+collection(db,"servers"),
 {
+
 name:name,
 owner:currentUser.uid,
-code:code
+code:inviteCode,
+
+categories:0,
+channels:0
+
 }
 );
-
-await setDoc(
-doc(
-db,
-"servers",
-server.id,
-"members",
-currentUser.uid
-),
-{
-uid:currentUser.uid
-});
 
 await updateDoc(
 userRef,
 {
-serversCreated:count+1
+serversCreated:count+1,
+joinedServers:
+arrayUnion(
+server.id
+)
 }
 );
 
 alert(
-"Invite Code: "+code
+"Invite code: "+
+inviteCode
 );
-
-serverInput.value="";
 
 loadServers();
 
@@ -321,7 +322,7 @@ await getDocs(q);
 if(result.empty){
 
 alert(
-"Server not found"
+"No server found"
 );
 
 return;
@@ -331,23 +332,23 @@ return;
 const server=
 result.docs[0];
 
-await setDoc(
+await updateDoc(
 doc(
 db,
-"servers",
-server.id,
-"members",
+"users",
 currentUser.uid
 ),
 {
-uid:currentUser.uid
-});
-
-alert(
-"Joined!"
+joinedServers:
+arrayUnion(
+server.id
+)
+}
 );
 
-joinInput.value="";
+alert(
+"Joined server!"
+);
 
 loadServers();
 
