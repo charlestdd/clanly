@@ -3,21 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <title>Clanly</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#313338;
+color:white;
+display:flex;
+height:100vh;
+}
+
+.sidebar{
+width:250px;
+background:#1e1f22;
+padding:15px;
+overflow-y:auto;
+}
+
+.main{
+flex:1;
+padding:30px;
+}
+
+.server{
+background:#2b2d31;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+background:#2b2d31;
+border:none;
+border-radius:8px;
+color:white;
+}
+
+button{
+width:100%;
+padding:10px;
+margin-top:10px;
+background:#5865F2;
+border:none;
+border-radius:8px;
+color:white;
+cursor:pointer;
+}
+
+img{
+width:80px;
+height:80px;
+border-radius:50%;
+}
+
+</style>
+
 </head>
 
-<body style="background:#313338;color:white;font-family:Arial;text-align:center;padding-top:100px">
+<body>
 
-<img id="avatar" width="100" style="border-radius:50%">
+<div class="sidebar">
 
-<h1 id="username"></h1>
+<h2>Your Servers</h2>
+
+<div id="serverList"></div>
+
+</div>
+
+<div class="main">
+
+<img id="avatar">
+
+<h2 id="username"></h2>
 
 <p id="email"></p>
 
-<h2>Welcome to Clanly</h2>
+<h2>Create Server</h2>
+
+<input
+id="serverInput"
+placeholder="Server name"
+>
+
+<button id="createBtn">
+Create Server
+</button>
+
+<h2>Join Server</h2>
+
+<input
+id="joinInput"
+placeholder="Invite code"
+>
+
+<button id="joinBtn">
+Join Server
+</button>
+
+</div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 
 import {
 getAuth,
@@ -28,23 +121,34 @@ from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import {
 getFirestore,
 doc,
-getDoc
+getDoc,
+setDoc,
+updateDoc,
+collection,
+query,
+where,
+getDocs,
+addDoc
 }
 from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 const firebaseConfig={
+
 apiKey:"AIzaSyCf0ZGAMxo4t9NyezQVY5ghaViQK-pDsKQ",
 authDomain:"clanly-ac9de.firebaseapp.com",
 projectId:"clanly-ac9de",
 storageBucket:"clanly-ac9de.firebasestorage.app",
 messagingSenderId:"604527744111",
 appId:"1:604527744111:web:f87ed6c3bd205e5ff7a99a"
+
 };
 
 initializeApp(firebaseConfig);
 
 const auth=getAuth();
 const db=getFirestore();
+
+let currentUser;
 
 onAuthStateChanged(auth,async(user)=>{
 
@@ -53,22 +157,201 @@ window.location="index.html";
 return;
 }
 
-const snap=
+currentUser=user;
+
+const userRef=
+doc(db,"users",user.uid);
+
+const userSnap=
+await getDoc(userRef);
+
+const userData=
+userSnap.data();
+
+avatar.src=userData.photoURL;
+username.innerText=userData.username;
+email.innerText=userData.email;
+
+loadServers();
+
+});
+
+async function loadServers(){
+
+serverList.innerHTML="";
+
+const q=query(
+collectionGroup(db,"members"),
+where("uid","==",currentUser.uid)
+);
+
+const results=
+await getDocs(q);
+
+for(const member of results.docs){
+
+const serverId=
+member.ref.parent.parent.id;
+
+const serverSnap=
 await getDoc(
 doc(
 db,
-"users",
-user.uid
+"servers",
+serverId
 )
 );
 
-const data=snap.data();
+const data=
+serverSnap.data();
 
-avatar.src=data.photoURL;
-username.innerText=data.username;
-email.innerText=data.email;
+serverList.innerHTML+=`
 
+<div class="server">
+${data.name}
+</div>
+
+`;
+
+}
+
+}
+
+createBtn.onclick=async()=>{
+
+const name=
+serverInput.value.trim();
+
+if(!name)return;
+
+const userRef=
+doc(
+db,
+"users",
+currentUser.uid
+);
+
+const userSnap=
+await getDoc(userRef);
+
+const userData=
+userSnap.data();
+
+const count=
+userData.serversCreated||0;
+
+if(count>=2){
+
+alert(
+"You can only create 2 servers"
+);
+
+return;
+
+}
+
+const code=
+Math.random()
+.toString(36)
+.substring(2,8)
+.toUpperCase();
+
+const server=
+await addDoc(
+collection(
+db,
+"servers"
+),
+{
+name:name,
+owner:currentUser.uid,
+code:code
+}
+);
+
+await setDoc(
+doc(
+db,
+"servers",
+server.id,
+"members",
+currentUser.uid
+),
+{
+uid:currentUser.uid
 });
+
+await updateDoc(
+userRef,
+{
+serversCreated:count+1
+}
+);
+
+alert(
+"Invite Code: "+code
+);
+
+serverInput.value="";
+
+loadServers();
+
+};
+
+joinBtn.onclick=async()=>{
+
+const code=
+joinInput.value
+.trim()
+.toUpperCase();
+
+const q=
+query(
+collection(db,"servers"),
+where(
+"code",
+"==",
+code
+)
+);
+
+const result=
+await getDocs(q);
+
+if(result.empty){
+
+alert(
+"Server not found"
+);
+
+return;
+
+}
+
+const server=
+result.docs[0];
+
+await setDoc(
+doc(
+db,
+"servers",
+server.id,
+"members",
+currentUser.uid
+),
+{
+uid:currentUser.uid
+});
+
+alert(
+"Joined!"
+);
+
+joinInput.value="";
+
+loadServers();
+
+};
 
 </script>
 
