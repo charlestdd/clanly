@@ -84,7 +84,8 @@ Continue
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 
 import {
 getAuth,
@@ -96,6 +97,7 @@ import {
 getFirestore,
 doc,
 setDoc,
+getDoc,
 query,
 collection,
 where,
@@ -103,68 +105,201 @@ getDocs
 }
 from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-const firebaseConfig={
+const firebaseConfig = {
+
 apiKey:"AIzaSyCf0ZGAMxo4t9NyezQVY5ghaViQK-pDsKQ",
 authDomain:"clanly-ac9de.firebaseapp.com",
 projectId:"clanly-ac9de",
 storageBucket:"clanly-ac9de.firebasestorage.app",
 messagingSenderId:"604527744111",
 appId:"1:604527744111:web:f87ed6c3bd205e5ff7a99a"
+
 };
 
 initializeApp(firebaseConfig);
 
-const auth=getAuth();
-const db=getFirestore();
+const auth = getAuth();
+const db = getFirestore();
 
 let currentUser;
+
+const reserved = [
+
+"admin",
+"system",
+"staff",
+"support",
+"official",
+"clanly",
+"discord",
+"google",
+"youtube",
+"roblox",
+"moderator",
+"owner",
+"developer",
+"security",
+"null",
+"undefined"
+
+];
 
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
-window.location="index.html";
+
+window.location = "index.html";
 return;
+
 }
 
-currentUser=user;
+currentUser = user;
 
-avatar.src=user.photoURL;
-email.innerText=user.email;
+avatar.src = user.photoURL;
+email.innerText = user.email;
 
 });
 
-continueBtn.onclick=async()=>{
+continueBtn.onclick = async()=>{
 
-const username=
-usernameInput.value.trim();
+error.innerText = "";
 
-const q=query(
-collection(db,"users"),
-where("username","==",username)
+const username =
+usernameInput.value
+.trim()
+.toLowerCase();
+
+
+// =======================
+// FORMAT VALIDATION
+// =======================
+
+if(
+!/^[a-z]{6,8}$/.test(username)
+){
+
+error.innerText =
+"Use 6-8 lowercase letters only";
+
+return;
+
+}
+
+
+// =======================
+// RESERVED USERNAMES
+// =======================
+
+if(
+reserved.includes(username)
+){
+
+error.innerText =
+"Username unavailable";
+
+return;
+
+}
+
+
+// =======================
+// CHECK IF USER EXISTS
+// =======================
+
+const existingUser =
+await getDoc(
+doc(
+db,
+"users",
+currentUser.uid
+)
 );
 
-const result=
+if(
+existingUser.exists()
+){
+
+error.innerText =
+"Account already created";
+
+return;
+
+}
+
+
+// =======================
+// CHECK USERNAME TAKEN
+// =======================
+
+const q = query(
+collection(db,"users"),
+where(
+"usernameLower",
+"==",
+username
+)
+);
+
+const result =
 await getDocs(q);
 
 if(!result.empty){
-error.innerText=
-"This username is taken";
+
+error.innerText =
+"Username taken";
+
 return;
+
 }
+
+
+// =======================
+// CREATE USER
+// =======================
 
 await setDoc(
 doc(db,"users",currentUser.uid),
 {
-email:currentUser.email,
-username:username,
-photoURL:currentUser.photoURL
+
+email: currentUser.email,
+
+username: username,
+
+usernameLower: username,
+
+photoURL: currentUser.photoURL,
+
+usernameChanges: 0,
+
+createdAt: Date.now(),
+
+joinedServers: [],
+
+serversCreated: 0
+
 }
 );
 
-window.location=
+
+// =======================
+// CLAIM USERNAME
+// =======================
+
+await setDoc(
+doc(db,"usernames",username),
+{
+uid: currentUser.uid
+}
+);
+
+
+window.location =
 "clanly.html";
 
 };
+
+</script>
+
 
 </script>
 
